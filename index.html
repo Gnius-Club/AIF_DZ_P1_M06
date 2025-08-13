@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>El Laboratorio de la Diversión: Detective de Emociones</title>
+<style>
+  /* =========================
+     ESTILOS GENERALES / ACCESIBILIDAD
+     - Alto contraste
+     - Layout responsive con CSS Grid / Flex
+     - Tipografía segura del sistema
+     ========================= */
+  :root{
+    --bg:#0b0f14;
+    --panel:#121923;
+    --panel-2:#162232;
+    --accent:#51e5a8;
+    --accent-2:#00c2ff;
+    --warning:#ffb400;
+    --danger:#ff5577;
+    --ok:#7CFF7C;
+    --text:#f2f6fb;
+    --muted:#a8b6c7;
+    --shadow: 0 8px 30px rgba(0,0,0,.35);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background: radial-gradient(1200px 600px at 50% -50%, #183049 0%, #0b0f14 60%);
+    color:var(--text);
+  }
+  a,button{color:inherit}
+  .sr-only{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+  .container{
+    max-width:1100px;
+    margin:auto;
+    padding:16px;
+    display:grid;
+    gap:16px;
+    grid-template-rows: auto 1fr auto;
+    min-height:100dvh;
+  }
+  header, footer{
+    background:linear-gradient(180deg, #162232 0%, #111923 100%);
+    border:1px solid #223044;
+    border-radius:var(--radius);
+    padding:10px 14px;
+    box-shadow:var(--shadow);
+  }
+  header{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.4px
+  }
+  .brand .logo{
+    width:40px;height:40px;border-radius:12px;background:conic-gradient(from 180deg, var(--accent), var(--accent-2));
+    box-shadow:0 0 0 3px #0b0f14,inset 0 0 30px rgba(0,0,0,.35);
+  }
+  .controls{
+    display:flex;gap:8px;flex-wrap:wrap
+  }
+  .btn{
+    background:linear-gradient(180deg,#1c2b3e,#142233);
+    border:1px solid #2a3b55;
+    padding:10px 14px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:.2s transform ease, .2s background ease;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+  }
+  .btn:hover{transform:translateY(-1px);background:#15253a}
+  .btn.primary{border-color:#1d6a8f;background:linear-gradient(180deg,#0f6a8e,#0e3951)}
+  .btn.good{border-color:#2b7a54;background:linear-gradient(180deg,#1a6d4b,#114235)}
+  .btn.warn{border-color:#8b5a00;background:linear-gradient(180deg,#7a4d00,#4b2f00)}
+  .btn.ghost{background:transparent;border-color:#2a3b55}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 10px;border-radius:999px;background:#0e1b2b;border:1px solid #24364d;color:#cfe7ff;font-size:.9rem
+  }
+
+  main{
+    display:grid;gap:16px;grid-template-columns: 320px 1fr;
+  }
+  @media (max-width: 900px){
+    main{grid-template-columns: 1fr}
+  }
+
+  /* ==============
+     PANEL IZQUIERDO: Zippy + Medidores + Menús
+     ============== */
+  .left{
+    background:linear-gradient(180deg,#0e1825,#0a141e);
+    border:1px solid #203049;border-radius:var(--radius);
+    padding:14px;box-shadow:var(--shadow);
+    display:grid;gap:14px;align-content:start
+  }
+
+  /* Avatar Zippy (SVG) centrado */
+  .zippy-wrap{
+    background: radial-gradient(240px 120px at 50% 0%, #14324d, #0b121c 70%);
+    border:1px solid #213449;border-radius:14px;padding:14px;position:relative;overflow:hidden
+  }
+  .zippy{
+    width:100%;max-width:260px;margin:0 auto;display:block;
+    filter:drop-shadow(0 6px 18px rgba(0,0,0,.6));
+  }
+  .halo{
+    position:absolute;inset:auto 0 6px; margin:auto; width:70%; height:10px; border-radius:50%;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.7), rgba(0,0,0,0));
+    transform:translateY(0); animation:floatHalo 3s ease-in-out infinite
+  }
+  @keyframes floatHalo{
+    0%,100%{transform:translateY(0) scaleX(1)}
+    50%{transform:translateY(2px) scaleX(1.05)}
+  }
+  .float{animation:float 3s ease-in-out infinite}
+  @keyframes float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-6px)}
+  }
+
+  /* Medidores */
+  .meters{display:grid;gap:10px}
+  .meter{
+    display:grid;gap:6px
+  }
+  .meter label{
+    font-weight:800;font-size:.9rem;letter-spacing:.4px;display:flex;justify-content:space-between
+  }
+  .bar{
+    height:12px;border-radius:999px;overflow:hidden;border:1px solid #25374f;background:#0e1b2a
+  }
+  .bar .fill{
+    height:100%; width:0%; transition: width .6s ease;
+    background: linear-gradient(90deg, var(--accent) , var(--accent-2));
+  }
+  .meter.attention{display:none}
+
+  /* Menú de Experimentos (Sala de Experimentos) */
+  .experiments{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px
+  }
+  @media (min-width: 420px){
+    .experiments{grid-template-columns:repeat(3,1fr)}
+  }
+  .exp{
+    position:relative;
+    background:linear-gradient(180deg,#132338,#0e1a2b);
+    border:1px solid #243956;border-radius:14px;padding:10px;
+    display:grid;place-items:center;text-align:center;gap:8px;cursor:pointer;transition:.2s transform ease;
+  }
+  .exp:hover{transform:translateY(-2px)}
+  .exp svg{width:42px;height:42px}
+  .exp small{color:var(--muted)}
+  .done-light{
+    position:absolute;right:8px;top:8px;width:12px;height:12px;border-radius:50%;
+    background:#23323f;border:1px solid #2a3b55;box-shadow:0 0 0 2px rgba(0,0,0,.25) inset;
+  }
+  .exp.done .done-light{background:var(--ok); box-shadow:0 0 10px 2px rgba(124,255,124,.5)}
+
+  /* ==============
+     PANEL DERECHO: Escenas / Texto / Evaluación / Álbum
+     ============== */
+  .right{
+    background:linear-gradient(180deg,#0e1825,#0a141e);
+    border:1px solid #203049;border-radius:var(--radius);
+    padding:14px;box-shadow:var(--shadow);
+    display:grid;grid-template-rows:auto 1fr;gap:12px;min-height:560px
+  }
+  .stage-title{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap
+  }
+  .stage-title h2{margin:0;font-size:1.25rem}
+  .scene{
+    border:1px dashed #2a3b55;border-radius:12px;padding:14px;display:grid;gap:12px;align-content:start;overflow:auto
+  }
+  .scene .text{
+    font-size:1.05rem;line-height:1.45
+  }
+  .actions{display:flex;flex-wrap:wrap;gap:8px}
+
+  /* Tarjetas de escena / animaciones simples */
+  .card{
+    background:linear-gradient(180deg,#0f1a29,#0a141e);
+    border:1px solid #22354d;border-radius:14px;padding:12px;display:grid;gap:8px
+  }
+  .mini-scene{
+    height:180px;border-radius:12px;border:1px solid #22354d;background:#0b121c;
+    display:grid;place-items:center;position:relative;overflow:hidden
+  }
+  .anim-item{position:absolute;transition:.5s transform ease, .5s opacity ease}
+  .bounce{animation:bounce 1.2s ease-in-out infinite}
+  @keyframes bounce{
+    0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}
+  }
+
+  /* Evaluación */
+  .quiz{
+    display:grid;gap:14px
+  }
+  .q{
+    display:grid;gap:10px
+  }
+  .choices{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px
+  }
+  .choice{
+    border:2px solid #274162;border-radius:14px;padding:10px;background:#0c1826;cursor:pointer;
+    display:grid;gap:8px;place-items:center;text-align:center;transition:.2s transform ease, .2s border-color ease
+  }
+  .choice:hover{transform:translateY(-2px);border-color:#2e6b98}
+  .choice.correct{border-color:var(--ok)}
+  .choice.wrong{border-color:var(--danger)}
+
+  /* Álbum de evidencias */
+  .album{
+    display:grid;gap:10px;grid-template-columns:repeat(2,1fr)
+  }
+  @media (min-width:700px){
+    .album{grid-template-columns:repeat(3,1fr)}
+  }
+  .evidence{
+    border:1px solid #263953;border-radius:12px;overflow:hidden;background:#0c1826
+  }
+  .evidence .thumb{
+    height:120px;display:grid;place-items:center;border-bottom:1px solid #263953
+  }
+  .evidence .meta{padding:8px;font-size:.95rem;color:#cfe7ff}
+
+  /* Estados de victoria/derrota */
+  .big{
+    font-size:1.2rem;font-weight:800;letter-spacing:.4px
+  }
+  .badge{
+    display:inline-grid;place-items:center;width:120px;height:120px;border-radius:24px;
+    border:2px solid #2a8e6a;background:radial-gradient(120px 60px at 50% 10%, #203f35, #0a1411);
+    box-shadow:var(--shadow)
+  }
+  .shake{animation:shake .4s ease}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}
+  }
+
+  footer{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .linkish{cursor:pointer;text-decoration:underline}
+
+</style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Juego educativo: Detective de Emociones">
+    <header>
+      <div class="brand" aria-label="El Laboratorio de la Diversión">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div>El Laboratorio de la Diversión</div>
+          <small class="muted" style="color:var(--muted)">Detective de Emociones · Ciudadanía Digital</small>
+        </div>
+      </div>
+      <div class="controls" role="toolbar" aria-label="Controles">
+        <button id="btnStart" class="btn primary">Comenzar</button>
+        <button id="btnNext" class="btn">Siguiente</button>
+        <button id="btnBackToLab" class="btn ghost">Volver a la Sala</button>
+        <button id="btnRestart" class="btn warn">Reiniciar Juego</button>
+        <button id="btnMute" class="btn ghost" aria-pressed="false">Silenciar Sonido</button>
+        <span class="pill" id="statusPill" aria-live="polite">Briefing</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Lado izquierdo: Zippy + medidores + menú de experimentos -->
+      <aside class="left" aria-label="Panel de estado">
+        <section class="zippy-wrap" aria-label="Avatar de Zippy">
+          <!-- Zippy: robot amigo (SVG) siempre visible -->
+          <svg class="zippy float" viewBox="0 0 200 200" role="img" aria-label="Zippy, robot amigable">
+            <!-- Cuerpo -->
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0" stop-color="#4de0a5"/><stop offset="1" stop-color="#00b6ff"/>
+              </linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r="80" fill="#0f2133" stroke="url(#g1)" stroke-width="4"/>
+            <!-- Cabeza -->
+            <rect x="60" y="40" width="80" height="60" rx="16" fill="#10243a" stroke="#1e4766" stroke-width="3"/>
+            <circle cx="85" cy="70" r="8" fill="#50e8b2"/>
+            <circle cx="115" cy="70" r="8" fill="#50e8b2"/>
+            <rect x="78" y="86" width="44" height="6" rx="3" fill="#1d91c4"/>
+            <!-- Antena -->
+            <line x1="100" y1="40" x2="100" y2="25" stroke="#1d91c4" stroke-width="3"/>
+            <circle cx="100" cy="22" r="5" fill="#50e8b2"/>
+            <!-- Brazos -->
+            <rect x="28" y="96" width="24" height="8" rx="4" fill="#1a3350"/>
+            <rect x="148" y="96" width="24" height="8" rx="4" fill="#1a3350"/>
+            <!-- Piernas -->
+            <rect x="80" y="136" width="12" height="24" rx="4" fill="#1a3350"/>
+            <rect x="108" y="136" width="12" height="24" rx="4" fill="#1a3350"/>
+          </svg>
+          <div class="halo" aria-hidden="true"></div>
+        </section>
+
+        <!-- Medidores de estado -->
+        <section class="meters" aria-label="Medidores">
+          <div class="meter energy" aria-live="polite">
+            <label><span>⚡ Energía física</span><span id="lblEnergy">0%</span></label>
+            <div class="bar"><div class="fill" id="energyFill" style="width:0%"></div></div>
+          </div>
+          <div class="meter social" aria-live="polite">
+            <label><span>🤝 Conexión social</span><span id="lblSocial">0%</span></label>
+            <div class="bar"><div class="fill" id="socialFill" style="width:0%"></div></div>
+          </div>
+          <div class="meter attention" id="attentionMeter" aria-live="polite">
+            <label><span>🎯 Atención</span><span id="lblAttention">0%</span></label>
+            <div class="bar"><div class="fill" id="attentionFill" style="width:0%"></div></div>
+          </div>
+        </section>
+
+        <!-- Menú de Experimentos -->
+        <section aria-label="Sala de Experimentos">
+          <h3 style="margin:0 0 8px 0">Sala de Experimentos</h3>
+          <div class="experiments" id="expMenu">
+            <!-- Cada icono es un botón con aria-label -->
+            <!-- 1: Reto de Lógica -->
+            <button class="exp" data-exp="logica" aria-label="Reto de Lógica">
+              <div class="done-light" aria-hidden="true"></div>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M12 3l9 5-9 5-9-5 9-5zm0 7l9 5-9 5-9-5 9-5z"/>
+              </svg>
+              <div>Reto de Lógica</div>
+              <small>Tranquilo y Solo</small>
+            </button>
+            <!-- 2: Aventura Social en Línea -->
+            <button class="exp" data-exp="online" aria-label="Aventura Social en Línea">
+              <div class="done-light"></div>
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h16v10H4V5zm2 13h12v2H6v-2z"/></svg>
+              <div>Aventura Social</div>
+              <small>Online y Solo</small>
+            </button>
+            <!-- 3: Maratón de Videos Cortos -->
+            <button class="exp" data-exp="shorts" aria-label="Maratón de Videos Cortos">
+              <div class="done-light"></div>
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 8l6 4-6 4V8zM4 4h8v16H4z"/></svg>
+              <div>Videos Cortos</div>
+              <small>Consumo Rápido</small>
+            </button>
+            <!-- 4: Película en Familia -->
+            <button class="exp" data-exp="movie" aria-label="Película en Familia">
+              <div class="done-light"></div>
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 5h3v3H3V5zm5 0h3v3H8V5zm5 0h3v3h-3V5zm5 0h3v3h-3V5zM3 10h18v9H3v-9z"/></svg>
+              <div>Película en Familia</div>
+              <small>Compartido</small>
+            </button>
+            <!-- 5: Partido en el Parque -->
+            <button class="exp" data-exp="park" aria-label="Partido en el Parque">
+              <div class="done-light"></div>
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+              <div>Parque</div>
+              <small>Físico y Social</small>
+            </button>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Lado derecho: escenas dinámicas -->
+      <section class="right" aria-live="polite">
+        <div class="stage-title">
+          <h2 id="stageTitle">Briefing: Introducción</h2>
+          <span class="pill">Zippy te acompaña 👋</span>
+          <span class="pill linkish" id="btnOpenAlbum" role="button" tabindex="0">Álbum de evidencias</span>
+        </div>
+        <div class="scene" id="scene" aria-label="Escena actual">
+          <!-- Contenido dinámico se inserta por JavaScript -->
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>© Gnius Club • Bienestar físico, social y emocional</div>
+      <div style="opacity:.8">Versión SPA · HTML5/CSS/JS puro</div>
+    </footer>
+  </div>
+
+<script>
+/* ============================================================
+   LÓGICA PRINCIPAL DEL JUEGO (JavaScript puro)
+   - SPA en un solo archivo: escenas se renderizan dinámicamente
+   - Accesibilidad: SpeechSynthesis para narración; ARIA updates
+   - Sin dependencias externas; efectos de sonido con WebAudio
+   ============================================================ */
+
+/* -----------------------------
+   ESTADO GLOBAL DEL JUEGO
+----------------------------- */
+const state = {
+  muted: false,
+  stage: 'briefing', // briefing | lab | experiment | quiz | win | lose | album
+  completed: { logica:false, online:false, shorts:false, movie:false, park:false },
+  meters: { energy: 0, social: 0, attention: 50 }, // valores 0-100 (atención inicia a 50)
+  evidence: [], // {id, title, summary}
+  quiz: { current:0, score:0, questions: [] }
+};
+
+/* -----------------------------
+   UTILIDADES DE UI
+----------------------------- */
+const $ = sel => document.querySelector(sel);
+const scene = $('#scene');
+const stageTitle = $('#stageTitle');
+const statusPill = $('#statusPill');
+const btnStart = $('#btnStart');
+const btnNext = $('#btnNext');
+const btnBackToLab = $('#btnBackToLab');
+const btnRestart = $('#btnRestart');
+const btnMute = $('#btnMute');
+const btnOpenAlbum = $('#btnOpenAlbum');
+const expMenu = $('#expMenu');
+const attentionMeter = $('#attentionMeter');
+
+const setPill = (t)=> statusPill.textContent = t;
+const setTitle = (t)=> stageTitle.textContent = t;
+
+/* -----------------------------
+   NARRACIÓN (TTS) ACCESIBLE
+----------------------------- */
+function speak(text){
+  if(state.muted) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-MX';
+    u.rate = 1;
+    u.pitch = 1;
+    u.volume = 1;
+    window.speechSynthesis.speak(u);
+  }catch(e){/* silencioso */}
+}
+
+/* -----------------------------
+   EFECTOS DE SONIDO (WebAudio)
+   - "Eureka" para aciertos
+   - "Buzz" para errores
+----------------------------- */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function beep(freq=440, time=0.15, type='sine', gainVal=.1){
+  if(state.muted) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.value = gainVal;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  setTimeout(()=>{ o.stop(); }, time*1000);
+}
+function sfxEureka(){
+  // Arpegio ascendente rápido
+  [523,659,784,1046].forEach((f,i)=> setTimeout(()=>beep(f,0.08,'triangle',.12), i*90));
+}
+function sfxError(){
+  beep(140,0.15,'square',.14);
+  setTimeout(()=>beep(110,0.2,'square',.14), 120);
+}
+
+/* -----------------------------
+   MEDIDORES (ENERGÍA / SOCIAL / ATENCIÓN)
+----------------------------- */
+const energyFill = $('#energyFill');
+const socialFill = $('#socialFill');
+const attentionFill = $('#attentionFill');
+const lblEnergy = $('#lblEnergy');
+const lblSocial = $('#lblSocial');
+const lblAttention = $('#lblAttention');
+
+function clamp(v, min=0, max=100){ return Math.max(min, Math.min(max, v)); }
+function updateMeters(){
+  energyFill.style.width = state.meters.energy + '%';
+  socialFill.style.width = state.meters.social + '%';
+  lblEnergy.textContent = state.meters.energy+'%';
+  lblSocial.textContent = state.meters.social+'%';
+
+  // Atención sólo visible en escenas que la afectan (según bandera del render)
+  lblAttention.textContent = state.meters.attention+'%';
+  attentionFill.style.width = state.meters.attention + '%';
+}
+
+/* -----------------------------
+   RENDER: ESCENAS PRINCIPALES
+----------------------------- */
+function renderBriefing(){
+  state.stage = 'briefing';
+  setTitle('Briefing: Introducción');
+  setPill('Briefing');
+  scene.innerHTML = `
+    <div class="card">
+      <div class="mini-scene" aria-hidden="true">
+        <div class="anim-item bounce" style="top:30px;left:30px">
+          <!-- Directora (simple figura) -->
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle cx="45" cy="24" r="14" fill="#ffd89c"/>
+            <rect x="25" y="38" width="40" height="40" rx="8" fill="#4a78a6"/>
+          </svg>
+        </div>
+        <div class="anim-item" style="right:26px;top:26px">
+          <!-- Zippy pequeño saludando -->
+          <svg width="80" height="80" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="80" fill="#0f2133" stroke="#39d6ff" stroke-width="4"/>
+            <rect x="60" y="40" width="80" height="60" rx="16" fill="#10243a" stroke="#1e4766" stroke-width="3"/>
+            <circle cx="85" cy="70" r="8" fill="#50e8b2"/>
+            <circle cx="115" cy="70" r="8" fill="#50e8b2"/>
+            <rect x="78" y="86" width="44" height="6" rx="3" fill="#1d91c4"/>
+            <rect x="28" y="96" width="24" height="8" rx="4" fill="#1a3350"/>
+            <rect x="148" y="96" width="24" height="8" rx="4" fill="#1a3350"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text">
+        <p><strong>Directora:</strong> ¡Bienvenido al <em>Laboratorio de la Diversión</em>! Este es Zippy, tu compañero robot. Hoy investigarán cómo diferentes <strong>juegos</strong> afectan tu <strong>cuerpo</strong> y tus <strong>emociones</strong>.</p>
+        <p>Existen <strong>Juegos de Mente y Dedos</strong>: son buenísimos para el cerebro, pero pueden cansar el cuerpo si abusamos. Y están los <strong>Juegos de Cuerpo y Amigos</strong>: recargan tu energía física y tu conexión social.</p>
+        <p><strong>Misión:</strong> Probarás 5 actividades, observarás los cambios en los medidores y luego presentarás el <strong>examen de detective</strong>.</p>
+      </div>
+      <div class="actions">
+        <button class="btn good" id="btnReady">¡Listo para experimentar!</button>
+      </div>
+    </div>
+  `;
+  attentionMeter.style.display = 'none'; // En briefing no mostramos atención
+  updateMeters();
+  speak("Bienvenido al Laboratorio de la Diversión. Soy la Directora y este es Zippy. Probarás cinco actividades y descubrirás cómo afectan tu energía, tu conexión social y tu atención. ¿Listo para experimentar?");
+  $('#btnReady').onclick = ()=> renderLab();
+}
+function renderLab(){
+  state.stage = 'lab';
+  setTitle('Sala de Experimentos');
+  setPill('Explora y completa los 5 experimentos');
+  scene.innerHTML = `
+    <div class="card">
+      <div class="text">
+        <p>Elige cualquiera de los <strong>cinco experimentos</strong>. Cuando termines cada uno, verás una luz verde en su icono. Al completar todos, podrás pasar a la <strong>Sala de Evaluación</strong>.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="btnGoQuiz" disabled>Ir a Evaluación (completa los 5)</button>
+      </div>
+    </div>
+  `;
+  attentionMeter.style.display = 'none';
+  updateMeters();
+  checkAllCompleted();
+  speak("Has entrado a la Sala de Experimentos. Completa los cinco para desbloquear la evaluación.");
+  $('#btnGoQuiz').onclick = ()=> renderQuizIntro();
+}
+function renderExperiment(expId){
+  state.stage = 'experiment';
+  setTitle('Experimento: ' + labels[expId].title);
+  setPill('Ejecutando experimento');
+  const cfg = experimentConfigs[expId];
+
+  // Mostrar atención solamente si este experimento la afecta
+  attentionMeter.style.display = cfg.affectsAttention ? 'grid' : 'none';
+
+  // Contenido de la mini animación y narrativa
+  scene.innerHTML = `
+    <div class="card">
+      <div class="mini-scene" id="mini">
+        ${cfg.animation}
+      </div>
+      <div class="text" id="expText">${cfg.text}</div>
+      <div class="actions">
+        <button class="btn primary" id="btnRun">Iniciar</button>
+        <button class="btn ghost" id="btnCancel">Cancelar</button>
+      </div>
+    </div>
+  `;
+  updateMeters();
+  speak("Experimento: " + labels[expId].title + ". " + cfg.speech);
+
+  // Animación sencilla al iniciar
+  $('#btnRun').onclick = ()=>{
+    runAnimation(expId, cfg);
+  };
+  $('#btnCancel').onclick = ()=> renderLab();
+}
+function renderQuizIntro(){
+  setTitle('Sala de Evaluación');
+  setPill('Examen de detective');
+  state.stage = 'quiz';
+  buildQuestions(); // generar preguntas (si no existen)
+  scene.innerHTML = `
+    <div class="card">
+      <div class="text">
+        <p>Llegó la hora del examen. Responde las <strong>3 preguntas</strong> eligiendo el icono correcto.</p>
+      </div>
+      <div class="actions">
+        <button class="btn good" id="btnStartQuiz">Comenzar Evaluación</button>
+        <button class="btn ghost" id="btnBackLab">Volver a la Sala</button>
+      </div>
+    </div>
+  `;
+  attentionMeter.style.display = 'none';
+  speak("Bien. Has desbloqueado la Sala de Evaluación. Cuando quieras, comienza el examen.");
+  $('#btnStartQuiz').onclick = ()=> renderQuestion();
+  $('#btnBackLab').onclick = ()=> renderLab();
+}
+function renderQuestion(){
+  const q = state.quiz.questions[state.quiz.current];
+  setTitle(`Pregunta ${state.quiz.current+1} de 3`);
+  setPill('Elige la opción correcta');
+  scene.innerHTML = `
+    <div class="quiz">
+      <div class="q">
+        <div class="text big">${q.prompt}</div>
+        <div class="choices">
+          ${q.choices.map((c,idx)=>`
+            <button class="choice" data-idx="${idx}" aria-label="${c.label}">
+              ${c.icon}
+              <div><strong>${c.label}</strong></div>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="btnQuitQuiz">Volver a la Sala</button>
+      </div>
+    </div>
+  `;
+  attentionMeter.style.display = 'none';
+  speak(q.prompt);
+  [...scene.querySelectorAll('.choice')].forEach(el=>{
+    el.onclick = ()=>{
+      const idx = +el.dataset.idx;
+      if(idx === q.correct){
+        el.classList.add('correct'); sfxEureka();
+        speak("¡Análisis perfecto, Detective! ¡Has conectado las pistas!");
+        state.quiz.score++;
+      }else{
+        el.classList.add('wrong'); sfxError();
+        scene.classList.add('shake'); setTimeout(()=>scene.classList.remove('shake'), 400);
+        speak("Casi. Observa las pistas e intenta de nuevo en la siguiente.");
+      }
+      setTimeout(()=>{
+        state.quiz.current++;
+        if(state.quiz.current>=state.quiz.questions.length){
+          if(state.quiz.score>=3){
+            renderWin();
+          }else{
+            renderLose();
+          }
+        }else{
+          renderQuestion();
+        }
+      }, 700);
+    };
+  });
+  $('#btnQuitQuiz').onclick = ()=> renderLab();
+}
+function renderWin(){
+  state.stage='win';
+  setTitle('¡Victoria!');
+  setPill('Detective Maestro de Emociones');
+  scene.innerHTML = `
+    <div class="card" style="text-align:center">
+      <div class="mini-scene">
+        <div class="badge">
+          <!-- Maletín de detective -->
+          <svg width="80" height="80" viewBox="0 0 64 64" class="bounce" aria-hidden="true">
+            <rect x="12" y="22" width="40" height="28" rx="4" fill="#2a5647" stroke="#7CFF7C" stroke-width="2"/>
+            <rect x="24" y="16" width="16" height="6" rx="2" fill="#2a5647" stroke="#7CFF7C" stroke-width="2"/>
+            <path d="M16 30h32" stroke="#7CFF7C" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text big">¡Eureka! Has aprobado el examen. Recibes el <strong>Maletín de Detective Maestro de Emociones</strong>.</div>
+      <p class="text">Frase de poder: <em>“¡Observar, comparar y elegir, así mi bienestar consigo dirigir!”</em></p>
+      <div class="actions">
+        <button class="btn good" id="btnNewCase">Nuevo caso (próximamente)</button>
+        <button class="btn" id="btnSeeAlbum">Ver Álbum</button>
+        <button class="btn ghost" id="btnReplayQuiz">Repetir Evaluación</button>
+      </div>
+    </div>
+  `;
+  attentionMeter.style.display = 'none';
+  sfxEureka();
+  speak("¡Eureka! Análisis perfecto, Detective. Has conectado las pistas. Frase de poder: Observar, comparar y elegir, así mi bienestar consigo dirigir.");
+  $('#btnNewCase').onclick = ()=> alert("Nuevos casos disponibles próximamente. ¡Sigue investigando!");
+  $('#btnSeeAlbum').onclick = ()=> renderAlbum();
+  $('#btnReplayQuiz').onclick = ()=> { state.quiz.current=0; state.quiz.score=0; renderQuizIntro(); }
+}
+function renderLose(){
+  state.stage='lose';
+  setTitle('Sigue investigando');
+  setPill('Motivación y reintento');
+  scene.innerHTML = `
+    <div class="card">
+      <div class="text">
+        <p><strong>Buen intento.</strong> Aún no lograste las tres respuestas correctas. ¡Los mejores detectives practican! Puedes <strong>revisar los replays</strong> en el Álbum de Evidencias y volver a intentarlo.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="btnSeeAlbum2">Ver Álbum (replays)</button>
+        <button class="btn good" id="btnRetry">Reintentar Evaluación</button>
+        <button class="btn ghost" id="btnBackLab2">Volver a la Sala</button>
+      </div>
+    </div>
+  `;
+  attentionMeter.style.display = 'none';
+  sfxError();
+  speak("Buen intento. Revisa los replays en el álbum de evidencias y vuelve a intentarlo.");
+  $('#btnSeeAlbum2').onclick = ()=> renderAlbum();
+  $('#btnRetry').onclick = ()=> { state.quiz.current=0; state.quiz.score=0; renderQuizIntro(); }
+  $('#btnBackLab2').onclick = ()=> renderLab();
+}
+function renderAlbum(){
+  state.stage='album';
+  setTitle('Álbum de Evidencias');
+  setPill('Tus hallazgos');
+  const items = state.evidence.length
+    ? state.evidence.map(ev=>`
+        <div class="evidence">
+          <div class="thumb">
+            ${labels[ev.id].icon}
+          </div>
+          <div class="meta">
+            <strong>${labels[ev.id].title}</strong><br/>
+            <small style="color:var(--muted)">${ev.summary}</small>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ghost btn-replay" data-id="${ev.id}">Ver replay</button>
+            </div>
+          </div>
+        </div>
+      `).join('')
+    : '<p class="text">Aún no has registrado evidencias. Completa experimentos para llenar tu álbum.</p>';
+
+  scene.innerHTML = `
+    <div class="card">
+      <div class="album">${items}</div>
+      <div class="actions" style="margin-top:10px">
+        <button class="btn ghost" id="btnBackFromAlbum">Volver</button>
+      </div>
+    </div>
+  `;
+  attentionMeter.style.display = 'none';
+  speak("Álbum de evidencias abierto.");
+  $('.album')?.querySelectorAll('.btn-replay')?.forEach(b=>{
+    b.onclick = ()=> renderExperiment(b.dataset.id);
+  });
+  $('#btnBackFromAlbum').onclick = ()=> renderLab();
+}
+
+/* -----------------------------
+   EXPERIMENTOS: CONFIGURACIÓN
+----------------------------- */
+const labels = {
+  logica: { title:'Reto de Lógica', icon:`<svg width="48" height="48" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3l9 5-9 5-9-5 9-5zm0 7l9 5-9 5-9-5 9-5z"/></svg>` },
+  online: { title:'Aventura Social en Línea', icon:`<svg width="48" height="48" viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h16v10H4V5zm2 13h12v2H6v-2z"/></svg>` },
+  shorts: { title:'Maratón de Videos Cortos', icon:`<svg width="48" height="48" viewBox="0 0 24 24"><path fill="currentColor" d="M10 8l6 4-6 4V8zM4 4h8v16H4z"/></svg>` },
+  movie: { title:'Película en Familia', icon:`<svg width="48" height="48" viewBox="0 0 24 24"><path fill="currentColor" d="M3 5h3v3H3V5zm5 0h3v3H8V5zm5 0h3v3h-3V5zm5 0h3v3h-3V5zM3 10h18v9H3v-9z"/></svg>` },
+  park:  { title:'Partido en el Parque', icon:`<svg width="48" height="48" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>` }
+};
+
+const experimentConfigs = {
+  // 1) Reto de Lógica (Tranquilo y Solo)
+  logica:{
+    affectsAttention:true,
+    text: `<p>Zippy se concentra en un puzzle en su tablet. <em>Cuerpo quieto</em>, mente activa. Sonríe al lograrlo, pero su energía física baja un poco.</p>`,
+    speech: "Reto de Lógica. Mente activa, cuerpo quieto. Energía baja un poco, atención sube.",
+    // animación simbólica
+    animation: `
+      <div class="anim-item" style="left:18px; bottom:22px">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <rect x="10" y="70" width="100" height="30" rx="8" fill="#1c2b3e"/>
+          <rect x="30" y="40" width="60" height="40" rx="8" fill="#0f6a8e"/>
+          <rect x="75" y="48" width="10" height="10" fill="#51e5a8"/>
+          <rect x="60" y="60" width="14" height="14" fill="#51e5a8"/>
+        </svg>
+      </div>
+      <div class="anim-item bounce" style="right:18px; top:20px">
+        ${labels.logica.icon}
+      </div>
+    `,
+    apply(){
+      state.meters.energy = clamp(state.meters.energy - 10 + 30); // sube un poco por satisfacción, luego bajamos para efecto final
+      state.meters.energy = clamp(state.meters.energy - 20); // efecto final: energía baja
+      state.meters.social = clamp(state.meters.social - 5);
+      state.meters.attention = clamp(state.meters.attention + 25);
+      saveEvidence('logica', 'Cuerpo quieto, logro mental; energía baja, atención alta.');
+    }
+  },
+  // 2) Aventura Social en Línea (Online y Solo)
+  online:{
+    affectsAttention:false,
+    text:`<p>Zippy se encorva frente a la pantalla, dedos veloces. Ojos algo rojos. <em>Conexión social baja</em> al estar solo.</p>`,
+    speech:"Aventura social en línea y en solitario. Energía muy baja, conexión social baja.",
+    animation: `
+      <div class="anim-item" style="left:16px; top:28px">
+        <svg width="120" height="90" viewBox="0 0 120 90">
+          <rect x="5" y="10" width="110" height="60" rx="8" fill="#10243a" stroke="#1e4766"/>
+          <rect x="30" y="22" width="60" height="36" fill="#1a3350"/>
+        </svg>
+      </div>
+      <div class="anim-item bounce" style="right:24px; bottom:18px">
+        ${labels.online.icon}
+      </div>
+    `,
+    apply(){
+      state.meters.energy = clamp(state.meters.energy - 30);
+      state.meters.social = clamp(state.meters.social - 20);
+      saveEvidence('online','Encorvado, ojos rojos; energía muy baja, poca conexión.');
+    }
+  },
+  // 3) Maratón de Videos Cortos (Consumo rápido)
+  shorts:{
+    affectsAttention:true,
+    text:`<p>Zippy mira videos ultrarrápidos. La cabeza se mueve rápido; termina con <em>mareo</em>. <strong>Atención en cero</strong>, ojos cansados.</p>`,
+    speech:"Maratón de videos cortos. Atención cae a cero, ojos cansados.",
+    animation: `
+      <div class="anim-item" id="head" style="left:34px; top:18px">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="28" r="20" fill="#0f2133" stroke="#39d6ff" stroke-width="3"/>
+          <rect x="30" y="42" width="20" height="30" rx="6" fill="#10243a"/>
+        </svg>
+      </div>
+      <div class="anim-item bounce" style="right:24px; bottom:18px">
+        ${labels.shorts.icon}
+      </div>
+    `,
+    apply(){
+      state.meters.attention = 0;
+      state.meters.energy = clamp(state.meters.energy - 10);
+      saveEvidence('shorts','Mareo final; atención en cero, ojos cansados.');
+    },
+    animateHook(){
+      // mover cabeza de lado a lado rápidamente
+      const head = $('#head');
+      let dir=1, i=0;
+      const t = setInterval(()=>{
+        i++;
+        head.style.transform = `translateX(${dir*10}px)`;
+        dir*=-1;
+        if(i>12) clearInterval(t);
+      }, 80);
+    }
+  },
+  // 4) Película en Familia (Compartido)
+  movie:{
+    affectsAttention:false,
+    text:`<p>Familia robot en sofá. Risas y palomitas. <em>Cuerpo relajado</em> y <strong>conexión social alta</strong>.</p>`,
+    speech:"Película en familia. Conexión social sube, cuerpo relajado.",
+    animation: `
+      <div class="anim-item" style="left:20px; bottom:18px">
+        <svg width="120" height="90" viewBox="0 0 120 90">
+          <rect x="8" y="50" width="104" height="28" rx="8" fill="#20324a"/>
+          <circle cx="30" cy="46" r="10" fill="#2a4768"/>
+          <circle cx="60" cy="44" r="12" fill="#2a4768"/>
+          <circle cx="88" cy="46" r="10" fill="#2a4768"/>
+        </svg>
+      </div>
+      <div class="anim-item bounce" style="right:24px; top:18px">
+        ${labels.movie.icon}
+      </div>
+    `,
+    apply(){
+      state.meters.social = clamp(state.meters.social + 35);
+      state.meters.energy = clamp(state.meters.energy + 5); // relajado pero no físico
+      saveEvidence('movie','Risas en familia; conexión social alta, cuerpo relajado.');
+    }
+  },
+  // 5) Partido en el Parque (Físico y Social)
+  park:{
+    affectsAttention:false,
+    text:`<p>Zippy corre y patea el balón, celebra con amigos. <strong>Energía</strong> y <strong>conexión social</strong> al máximo.</p>`,
+    speech:"Partido en el parque. Energía y conexión social a tope.",
+    animation: `
+      <div class="anim-item" id="ball" style="left:26px; bottom:24px">
+        <svg width="40" height="40" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="anim-item bounce" style="right:24px; top:18px">
+        ${labels.park.icon}
+      </div>
+    `,
+    apply(){
+      state.meters.energy = 100;
+      state.meters.social = 100;
+      saveEvidence('park','Celebración con amigos; energía y conexión al máximo.');
+    },
+    animateHook(){
+      const ball = $('#ball');
+      let y=0, v=-10; // patear
+      const t = setInterval(()=>{
+        y += v; v += 1.2; // gravedad
+        if(y>0){ y=0; v = -10; } // rebote
+        ball.style.transform = `translateY(${y}px)`;
+      }, 60);
+      setTimeout(()=>clearInterval(t), 1500);
+    }
+  }
+};
+
+/* -----------------------------
+   EJECUCIÓN DE EXPERIMENTOS
+----------------------------- */
+function runAnimation(id, cfg){
+  // Mini "animación" y luego aplicar efectos y marcar completado
+  const mini = $('#mini');
+  mini.classList.add('shake');
+  setTimeout(()=> mini.classList.remove('shake'), 500);
+  cfg.animateHook && cfg.animateHook();
+  setTimeout(()=>{
+    cfg.apply();
+    state.completed[id]=true;
+    markDoneIcons();
+    updateMeters();
+    // Sustituimos el texto por el "estado final"
+    $('#expText').innerHTML += `<p><strong>Estado final:</strong> ${finalStateText[id]}</p>`;
+    speak(finalSpeech[id]);
+    checkAllCompleted();
+  }, 900);
+}
+
+/* -----------------------------
+   TEXTOS DE ESTADO FINAL (por experimento)
+----------------------------- */
+const finalStateText = {
+  logica: 'Cuerpo quieto, sonrisa de logro, energía baja.',
+  online: 'Energía muy baja, conexión social baja.',
+  shorts: 'Atención en cero, ojos cansados.',
+  movie:  'Cuerpo relajado, conexión social alta.',
+  park:   'Energía y conexión social al máximo.'
+};
+const finalSpeech = {
+  logica: 'Has completado Reto de Lógica: logro mental con poca energía física.',
+  online: 'Has completado la Aventura Social en Línea: energía muy baja y poca conexión.',
+  shorts: 'Has completado la Maratón de Videos Cortos: atención en cero y ojos cansados.',
+  movie:  'Has completado Película en Familia: cuerpo relajado y conexión social alta.',
+  park:   'Has completado Partido en el Parque: energía y conexión social al máximo.'
+};
+
+/* -----------------------------
+   MARCAR ICONOS COMPLETADOS
+----------------------------- */
+function markDoneIcons(){
+  expMenu.querySelectorAll('.exp').forEach(btn=>{
+    const id = btn.dataset.exp;
+    btn.classList.toggle('done', !!state.completed[id]);
+    btn.setAttribute('aria-pressed', state.completed[id] ? 'true' : 'false');
+  });
+}
+
+/* -----------------------------
+   DESBLOQUEO DE EVALUACIÓN
+----------------------------- */
+function checkAllCompleted(){
+  const all = Object.values(state.completed).every(v=>v);
+  const go = $('#btnGoQuiz');
+  if(go){
+    go.disabled = !all;
+    go.classList.toggle('good', all);
+  }
+  return all;
+}
+
+/* -----------------------------
+   EVIDENCIAS / REPLAYS
+----------------------------- */
+function saveEvidence(id, summary){
+  if(!state.evidence.find(e=>e.id===id)){
+    state.evidence.push({id, summary, title: labels[id].title});
+  }
+}
+
+/* -----------------------------
+   EVALUACIÓN: PREGUNTAS
+----------------------------- */
+function buildQuestions(){
+  if(state.quiz.questions.length) return;
+  state.quiz.questions = [
+    {
+      prompt: "¿Qué actividad dejó a Zippy más cansado físicamente pero feliz y conectado?",
+      choices: [
+        {label:"Partido en el Parque", icon: labels.park.icon},
+        {label:"Juego en línea (Roblox Solo)", icon: labels.online.icon}
+      ],
+      correct: 0
+    },
+    {
+      prompt: "¿Qué actividad fue la peor para la concentración y los ojos de Zippy?",
+      choices: [
+        {label:"YouTube Kids (videos cortos)", icon: labels.shorts.icon},
+        {label:"Sudoku / Lógica", icon: labels.logica.icon}
+      ],
+      correct: 0
+    },
+    {
+      prompt: "Si Zippy se siente solo, ¿cuál actividad le ayudaría más a su corazón?",
+      choices: [
+        {label:"Película en Familia", icon: labels.movie.icon},
+        {label:"Roblox Solo", icon: labels.online.icon}
+      ],
+      correct: 0
+    }
+  ];
+}
+
+/* -----------------------------
+   EVENTS: BOTONES GLOBALES
+----------------------------- */
+btnStart.onclick = ()=> renderBriefing();
+btnNext.onclick = ()=>{
+  if(state.stage==='briefing') renderLab();
+  else if(state.stage==='lab' && checkAllCompleted()) renderQuizIntro();
+  else if(state.stage==='quiz') renderQuestion();
+};
+btnBackToLab.onclick = ()=> renderLab();
+btnRestart.onclick = ()=> resetGame();
+btnMute.onclick = ()=>{
+  state.muted = !state.muted;
+  btnMute.setAttribute('aria-pressed', String(state.muted));
+  btnMute.textContent = state.muted ? 'Activar Sonido' : 'Silenciar Sonido';
+  setPill(state.muted ? 'Sonido: OFF' : 'Sonido: ON');
+};
+btnOpenAlbum.onclick = ()=> renderAlbum();
+
+expMenu.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.exp');
+  if(!btn) return;
+  renderExperiment(btn.dataset.exp);
+});
+
+/* -----------------------------
+   REINICIO TOTAL
+----------------------------- */
+function resetGame(){
+  state.stage='briefing';
+  state.completed={logica:false,online:false,shorts:false,movie:false,park:false};
+  state.meters={energy:0,social:0,attention:50};
+  state.evidence=[];
+  state.quiz={current:0,score:0,questions:[]};
+  markDoneIcons();
+  updateMeters();
+  renderBriefing();
+}
+
+/* -----------------------------
+   INICIO AUTOMÁTICO
+----------------------------- */
+window.addEventListener('load', ()=>{
+  markDoneIcons();
+  updateMeters();
+  renderBriefing();
+});
+
+/* -----------------------------
+   TECLADO: ACCESOS RÁPIDOS
+----------------------------- */
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='m') btnMute.click();
+  if(e.key==='r') btnRestart.click();
+});
+
+</script>
+</body>
+</html>
